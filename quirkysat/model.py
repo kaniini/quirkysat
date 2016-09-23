@@ -95,6 +95,19 @@
     2
     >>> sm.score(6)
     3
+
+    Finally, a model may accept multiple inputs.  As an example, we can create a model
+    which verifies if three numbers are a valid pythagorean triple.
+
+    >>> from quirkysat.model import AbsoluteModel
+    >>> am = AbsoluteModel([
+    ...    lambda a, b, c: (a * 2) + (b * 2) == (c * 2)
+    ... ])
+    ...
+    >>> am(2, 3, 5)
+    True
+    >>> am(2, 3, 6)
+    False
 """
 
 
@@ -107,16 +120,16 @@ class WeightedModel:
         if not self.required_score:
             self.required_score = sum([x[1] for x in self._clauses])
 
-    def score(self, data):
+    def score(self, *args):
         score = 0
 
         for clause in self._clauses:
-            score += clause[1] if clause[0](data) else 0
+            score += clause[1] if clause[0](*args) else 0
 
         return score
 
-    def __call__(self, data):
-        return self.score(data) >= self.required_score
+    def __call__(self, *args):
+        return self.score(*args) >= self.required_score
 
     def push_clause(self, clause, weight=1):
         self._clauses += [(clause, weight)]
@@ -141,9 +154,9 @@ class AbsoluteModel(SimpleModel):
     def __init__(self, clauses):
         super().__init__(clauses, required_score=len(clauses))
 
-    def __call__(self, data):
+    def __call__(self, *args):
         for clause in self._clauses:
-            if not clause[0](data): return False
+            if not clause[0](*args): return False
 
         return True
 
