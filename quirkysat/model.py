@@ -48,6 +48,53 @@
     False
     >>> am(13)
     True
+
+    Using weighting we can create models which have preferences:
+
+    >>> from quirkysat.model import WeightedModel
+    >>> wm = WeightedModel([
+    ...    (lambda x: x > 1, 10),
+    ...    (lambda x: x < 10, 10),
+    ...    (lambda x: x % 2 == 0, 20)
+    ... ], 20)
+    ...
+    >>> wm(2)
+    True
+    >>> wm(3)
+    True
+    >>> wm(11)
+    False
+    >>> wm(12)
+    True
+    >>> wm.score(11)
+    10
+    >>> wm.score(12)
+    30
+
+    ``SimpleModel`` is a variant of ``WeightedModel`` which assigns a value of 1 point
+    for each clause, but otherwise works the same:
+
+    >>> from quirkysat.model import SimpleModel
+    >>> sm = SimpleModel([
+    ...    lambda x: x > 1,
+    ...    lambda x: x < 10,
+    ...    lambda x: x % 2 == 0
+    ... ], 2)
+    ...
+    >>> sm(2)
+    True
+    >>> sm(3)
+    True
+    >>> sm(11)
+    False
+    >>> sm(12)
+    True
+    >>> sm.score(11)
+    1
+    >>> sm.score(12)
+    2
+    >>> sm.score(6)
+    3
 """
 
 
@@ -55,19 +102,21 @@ class WeightedModel:
     def __init__(self, clauses, required_score=None):
         self._clauses = []
 
-        [self.push_clause(clause, weight) for clause in clauses]
+        [self.push_clause(clause[0], clause[1]) for clause in clauses]
         self.required_score = required_score
         if not self.required_score:
             self.required_score = sum([x[1] for x in self._clauses])
 
-    def __call__(self, data):
-        required_score = self.required_score
+    def score(self, data):
         score = 0
 
         for clause in self._clauses:
             score += clause[1] if clause[0](data) else 0
 
-        return score >= required_score
+        return score
+
+    def __call__(self, data):
+        return self.score(data) >= self.required_score
 
     def push_clause(self, clause, weight=1):
         self._clauses += [(clause, weight)]
