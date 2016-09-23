@@ -23,6 +23,31 @@
     False
     >>> am(2)
     True
+
+    A basic example with a custom test functor:
+
+    >>> from quirkysat.model import AbsoluteModel
+    >>> from quirkysat.clause import Clause
+    >>> class FibonacciClause(Clause):
+    ...     prev = [0, 1]
+    ...     def __call__(self, data):
+    ...         next = self.prev[1] + self.prev.pop(0)
+    ...         self.prev += [next]
+    ...         return data == next
+    ...
+    >>> am = AbsoluteModel([FibonacciClause()])
+    >>> am(1)
+    True
+    >>> am(2)
+    True
+    >>> am(3)
+    True
+    >>> am(5)
+    True
+    >>> am(6)
+    False
+    >>> am(13)
+    True
 """
 
 
