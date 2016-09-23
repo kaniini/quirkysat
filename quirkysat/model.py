@@ -10,12 +10,26 @@
       - a lambda expression
       - a Clause functor (see ``quirkysat.clause``)
 
-    XXX: provide an example of usage here
+    A basic example with only lambdas:
+
+    >>> from quirkysat.model import AbsoluteModel
+    >>> am = AbsoluteModel([
+    ...    lambda x: x > 1,
+    ...    lambda x: x < 3
+    ... ])
+    >>> am(1)
+    False
+    >>> am(3)
+    False
+    >>> am(2)
+    True
 """
 
 
 class WeightedModel:
     def __init__(self, clauses, required_score=None):
+        self._clauses = []
+
         [self.push_clause(clause, weight) for clause in clauses]
         self.required_score = required_score
         if not self.required_score:
@@ -36,6 +50,8 @@ class WeightedModel:
 
 class SimpleModel(WeightedModel):
     def __init__(self, clauses, required_score=None):
+        self._clauses = []
+
         [self.push_clause(clause) for clause in clauses]
         maximum_score = len(clauses)
 
