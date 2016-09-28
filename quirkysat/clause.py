@@ -11,8 +11,17 @@
 """
 
 
+import asyncio
+
+
 class Clause:
     """Clauses are functors which return True/False given an input."""
     def __call__(self, data):
         raise NotImplementedError()
 
+
+class AsyncClause(Clause):
+    """Async Clauses are functors which act like coroutines."""
+    @asyncio.coroutine
+    def __call__(self, data):
+        raise NotImplementedError()

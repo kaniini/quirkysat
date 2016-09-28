@@ -162,3 +162,37 @@ class AbsoluteModel(SimpleModel):
 
 
 Model = SimpleModel
+
+
+class AsyncWeightedModel(WeightedModel):
+    @asyncio.coroutine
+    def score(self, *args):
+        score = 0
+
+        results = yield from asyncio.gather(*[clause[0](*args) for clause in self._clauses])
+        for clause, result in zip(self._clauses, results):
+            score += clause[1] if result else 0
+
+        return 0
+
+    @asyncio.coroutine
+    def __call__(self, *args):
+        score = yield from self.score(*args)
+        return score >= self.required_score
+
+
+class AsyncSimpleModel(AsyncWeightedModel + SimpleModel):
+    pass
+
+
+class AsyncAbsoluteModel(AsyncSimpleModel + AbsoluteModel):
+    @asyncio.coroutine
+    def __call__(self, *args):
+        for clause in self._clauses:
+            result = yield from clause[0](*args)
+            if not result: return False
+
+        return True
+
+
+AsyncModel = AsyncSimpleModel
